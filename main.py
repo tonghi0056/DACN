@@ -2,6 +2,7 @@ import configparser
 from src.environment.target_environment import TargetEnvironment
 from src.agent.q_learning_agent import QLearningAgent
 from tqdm import tqdm  # Thư viện progress bar cho đẹp
+import os
 
 # --- THÊM DÒNG NÀY ---
 import matplotlib.pyplot as plt
@@ -88,7 +89,26 @@ def run_training(config_path, model_save_path, model_load_path=None):
     plt.xlabel("Episode")
     plt.ylabel("Tổng phần thưởng (Total Reward)")
     plt.grid(True)
+    # ...
+    plt.ylabel("Tổng phần thưởng (Total Reward)")
+    plt.grid(True)
+
+    # --- SỬA ĐOẠN NÀY ĐỂ LƯU ẢNH ---
+    
+    # 1. Chỉ định thư mục và tên file ảnh
+    chart_save_dir = "results/target_results"
+    chart_save_path = os.path.join(chart_save_dir, "training_rewards_chart.png") # Tên file ảnh
+
+    # 2. Đảm bảo thư mục results/target_results tồn tại
+    os.makedirs(chart_save_dir, exist_ok=True)
+
+    # 3. Lưu biểu đồ vào file
+    plt.savefig(chart_save_path)
+    print(f"Đã lưu biểu đồ phần thưởng vào: {chart_save_path}")
+
+    # 4. Hiển thị biểu đồ (bạn vẫn có thể giữ nếu muốn)
     plt.show()
+    # -----------------------------------------
     # -----------------------------------------
 
 if __name__ == "__main__":
