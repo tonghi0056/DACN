@@ -54,7 +54,10 @@ class RewardSystem:
             return False
 
         # 1. THÀNH CÔNG LỚN: Khai thác thành công
-        if status == 200 and (self.success_marker in text or contains_marker(json_body)):
+        # THÊM: Kiểm tra payload phải chứa "UNION" và "USERS"
+        is_real_attack = "UNION" in payload.upper() and "USERS" in payload.upper()
+        
+        if status == 200 and (self.success_marker in text or contains_marker(json_body)) and is_real_attack:
             print(f"\n[RewardSystem] !!! SUCCESS: Payload: {payload}")
             return 200, True  # Thưởng rất lớn, kết thúc episode
 
