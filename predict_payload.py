@@ -2,7 +2,7 @@ import random
 import numpy as np
 import configparser
 import sys
-import os # Cần cho việc tắt 'print'
+import os  # Cần cho việc tắt 'print'
 import logging
 
 # --- Import các thành phần CỐT LÕI ---
@@ -18,7 +18,7 @@ CONFIG_FILE = "config/config_target.ini"
 MODEL_FILE = "results/target_results/juiceshop_model_v1.json"
 # Tăng số lần thử lên 200 (bạn có thể tăng lên 1000 nếu muốn)
 NUMBER_OF_ATTEMPTS = 200
-PREDICT_EPSILON = 0.3 # 30% cơ hội chọn ngẫu nhiên
+PREDICT_EPSILON = 0.8  # Tăng lên 50% cơ hội chọn ngẫu nhiên để explore hơn
 # --------------------
 
 # --- THÊM 3 DÒNG CÀI ĐẶT LOGGING ---
@@ -83,23 +83,27 @@ def run_automated_prediction():
 
         for step in range(max_steps):
             q_values = q_table.get(current_state)
-
-            # Nếu vào ngõ cụt (Q=0), dừng tạo payload này và thử payload khác
-            if np.all(q_values == 0):
-                logging.info(f"  (Đi vào ngõ cụt tại state '{current_state}', dừng tạo.)")
-                break # Dừng vòng lặp 'for step...'
             
-            # Logic 30% "may rủi"
+            # REMOVE BREAK EARLY: Không còn check np.all(q_values == 0) để luôn full steps
+            
+            # Epsilon-greedy với PREDICT_EPSILON
             if random.uniform(0, 1) < PREDICT_EPSILON:
                 best_action_index = random.randint(0, action_space.get_action_space_size() - 1)
+                logging.debug(f"  Step {step}: Explore random action {best_action_index}")
             else:
                 best_action_index = np.argmax(q_values)
+                logging.debug(f"  Step {step}: Exploit best action {best_action_index} (Q-max: {np.max(q_values):.2f})")
             
             action_string = action_space.get_action_string(best_action_index)
             generated_payload += action_string
-            current_state = generated_payload
+            current_state = generated_payload  # Luôn update state
+            
+            # OPTIONAL: Early stop chỉ nếu quá dài (tránh spam)
+            if len(generated_payload) > 120 and step > 25:
+                logging.info(f"  (Payload quá dài {len(generated_payload)} chars, dừng sớm tại step {step})")
+                break
         
-        logging.info(f"Đã tạo Payload: {generated_payload!r}")
+        logging.info(f"Đã tạo Payload: {generated_payload!r} (dài {len(generated_payload)} chars)")
 
         # 5. TỰ ĐỘNG KIỂM TRA PAYLOAD
         logging.info("  Đang gửi payload để kiểm tra...")
@@ -111,23 +115,24 @@ def run_automated_prediction():
         try:
             reward, done = reward_system.calculate_reward(response, generated_payload)
         finally:
-            sys.stdout.close() # Đóng file null
-            sys.stdout = original_stdout # Khôi phục print bình thường
+            sys.stdout.close()  # Đóng file null
+            sys.stdout = original_stdout  # Khôi phục print bình thường
         
         # 6. Kiểm tra kết quả
-        if done: # 'done' là True khi reward == 200 (thành công)
+        if done:  # 'done' là True khi reward == 200 (thành công)
             logging.info(f"\n========================================")
             logging.info(f"!!! TẤN CÔNG THÀNH CÔNG (Reward={reward}) !!!")
             logging.info(f"Payload chiến thắng: {generated_payload}")
             logging.info(f"========================================")
             found_success = True
-            break # Thoát khỏi vòng lặp 'for attempt...'
+            break  # Thoát khỏi vòng lặp 'for attempt...'
         else:
             logging.info(f"  Kết quả: Thất bại (Reward={reward}). Đang thử lại...")
 
     if not found_success:
         logging.info(f"\n--- Đã hết {NUMBER_OF_ATTEMPTS} lần thử. Không tìm thấy payload thành công. ---")
         logging.info("Mẹo: Hãy thử tăng 'NUMBER_OF_ATTEMPTS' trong file này, hoặc huấn luyện (main.py) thêm.")
+
 
 # --- Chạy hàm chính ---
 if __name__ == "__main__":

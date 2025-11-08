@@ -44,25 +44,27 @@ class TargetEnvironment(BaseEnvironment):
         return self.state_manager.reset_state()
 
     def step(self, action_index):
-        """Thực hiện 1 bước trong môi trường."""
-        
-        # 1. Lấy chuỗi hành động (ví dụ: 'UNION')
+        """Thực hiện action, simulate response, tính reward."""
+        # 1. Lấy action string
         action_string = self.action_space.get_action_string(action_index)
         
-        # 2. Cập nhật trạng thái (nối chuỗi vào payload)
+        # 2. Update state (nối payload)
         new_state = self.state_manager.update_state(action_string)
         
-        # 3. Gửi payload đến Juice Shop
-        response = self.http_client.send_search_query(
-            self.search_url,
-            new_state,
-            self.search_param
-        )
+        # 3. Simulate HTTP response dựa trên payload (extract string nếu hash)
+        payload_str = self._get_payload_string(new_state)  # New helper
+        response = self._simulate_response(payload_str)
         
-        # 4. Tính toán phần thưởng
-        reward, done = self.reward_system.calculate_reward(response, new_state)
+        # 4. Tính reward & done
+        reward, done = self.reward_system.calculate_reward(response, payload_str)  # Pass str to reward
         
-        return new_state, reward, done
+        return new_state, reward, done  # Return hash/tuple state for Q-table
+
+    def _get_payload_string(self, state):
+        """Extract full string payload từ state (hash or str)."""
+        if len(state) == 32 and all(c in '0123456789abcdef' for c in state):  # Likely MD5 hash
+            return self.state_manager.get_current_state()  # Full from manager
+        return state  # Already str
 
     def get_action_space_size(self):
         """Trả về số lượng hành động từ ActionSpace."""
