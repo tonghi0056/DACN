@@ -1,3 +1,4 @@
+#main.py
 import configparser
 from src.environment.training_environment import TrainingEnvironment  # Thêm import này
 from src.environment.target_environment import TargetEnvironment

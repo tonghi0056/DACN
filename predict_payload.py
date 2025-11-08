@@ -1,3 +1,4 @@
+#predict_payload.py
 import random
 import numpy as np
 import configparser
@@ -18,7 +19,7 @@ CONFIG_FILE = "config/config_target.ini"
 MODEL_FILE = "results/target_results/juiceshop_model_v1.json"
 # Tăng số lần thử lên 200 (bạn có thể tăng lên 1000 nếu muốn)
 NUMBER_OF_ATTEMPTS = 200
-PREDICT_EPSILON = 0.8  # Tăng lên 50% cơ hội chọn ngẫu nhiên để explore hơn
+PREDICT_EPSILON = 0.8  # Tăng lên 80% cơ hội chọn ngẫu nhiên để explore hơn
 # --------------------
 
 # --- THÊM 3 DÒNG CÀI ĐẶT LOGGING ---
@@ -120,13 +121,26 @@ def run_automated_prediction():
         
         # 6. Kiểm tra kết quả
         if done:  # 'done' là True khi reward == 200 (thành công)
+            
+            # --- BẮT ĐẦU THÊM CODE DỌN DẸP ---
+            clean_payload = generated_payload  # Giữ bản gốc nếu như không có '--'
+            if "--" in generated_payload:
+                # Cắt payload tại dấu '--' đầu tiên và thêm lại dấu '--'
+                clean_payload = generated_payload.split('--', 1)[0] + '--'
+            # --- KẾT THÚC THÊM CODE DỌN DẸP ---
+
             logging.info(f"\n========================================")
             logging.info(f"!!! TẤN CÔNG THÀNH CÔNG (Reward={reward}) !!!")
-            logging.info(f"Payload chiến thắng: {generated_payload}")
+            
+            # In payload gốc (để biết agent đã học ntn)
+            logging.info(f"Payload gốc: {generated_payload}") 
+            
+            # In payload đã dọn dẹp (để sử dụng)
+            logging.info(f"Payload (đã dọn dẹp): {clean_payload}") 
+            
             logging.info(f"========================================")
             found_success = True
             break  # Thoát khỏi vòng lặp 'for attempt...'
-        else:
             logging.info(f"  Kết quả: Thất bại (Reward={reward}). Đang thử lại...")
 
     if not found_success:
