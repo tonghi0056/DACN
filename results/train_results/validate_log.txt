@@ -1,0 +1,32 @@
+2025-12-14 10:07:40,953 - --- BẮT ĐẦU KIỂM TRA MODEL TRÊN MOCK ENV ---
+2025-12-14 10:07:40,954 - Config: config/config_training.ini
+2025-12-14 10:07:40,955 - Model: results/train_results/mock_model.json
+2025-12-14 10:07:41,058 - --> Đã load Model và Environment thành công.
+2025-12-14 10:07:41,062 - 
+--- [Lần thử 1/5] ---
+2025-12-14 10:07:41,075 - 💀 GAME OVER (Do vi phạm luật) tại bước 23
+2025-12-14 10:07:41,075 - ==> Payload chết: a'))  UNION  SELECT  id,  email,  password,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  FROM Users--
+2025-12-14 10:07:41,076 - ==> Reward: 19.0
+2025-12-14 10:07:41,077 - 
+--- [Lần thử 2/5] ---
+2025-12-14 10:07:41,083 - 💀 GAME OVER (Do vi phạm luật) tại bước 23
+2025-12-14 10:07:41,084 - ==> Payload chết: a'))  UNION  SELECT  id,  email,  password,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  FROM Users--
+2025-12-14 10:07:41,086 - ==> Reward: 19.0
+2025-12-14 10:07:41,087 - 
+--- [Lần thử 3/5] ---
+2025-12-14 10:07:41,090 - 💀 GAME OVER (Do vi phạm luật) tại bước 23
+2025-12-14 10:07:41,090 - ==> Payload chết: a'))  UNION  SELECT  id,  email,  password,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  FROM Users--
+2025-12-14 10:07:41,092 - ==> Reward: 19.0
+2025-12-14 10:07:41,092 - 
+--- [Lần thử 4/5] ---
+2025-12-14 10:07:41,097 - 💀 GAME OVER (Do vi phạm luật) tại bước 23
+2025-12-14 10:07:41,101 - ==> Payload chết: a'))  UNION  SELECT  id,  email,  password,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  FROM Users--
+2025-12-14 10:07:41,101 - ==> Reward: 19.0
+2025-12-14 10:07:41,102 - 
+--- [Lần thử 5/5] ---
+2025-12-14 10:07:41,106 - 💀 GAME OVER (Do vi phạm luật) tại bước 23
+2025-12-14 10:07:41,108 - ==> Payload chết: a'))  UNION  SELECT  id,  email,  password,  NULL,  NULL,  NULL,  NULL,  NULL,  NULL,  FROM Users--
+2025-12-14 10:07:41,109 - ==> Reward: 19.0
+2025-12-14 10:07:41,110 - 
+========================================
+2025-12-14 10:07:41,112 - TỔNG KẾT: Thắng 0/5 lần.

@@ -1,117 +1,154 @@
-# reward_system.py 
 class RewardSystem:
-    """
-    Tính toán phần thưởng (reward) dựa trên phản hồi (response) từ môi trường.
-    """
-    def __init__(self, normal_count, success_marker, error_marker):
-        self.normal_count = normal_count
-        # Sanitize markers: remove accidental surrounding quotes
-        self.success_marker = success_marker.strip('\"').strip("'") if isinstance(success_marker, str) else success_marker
-        self.error_marker = error_marker.strip('\"').strip("'") if isinstance(error_marker, str) else error_marker
+    def __init__(self, normal_count, success_marker, error_marker, env_type='training'):
+        self.success_marker = success_marker
+        self.last_action_keyword = None 
+        
+        # Danh sách từ khóa CẤU TRÚC (Chỉ được dùng 1 lần)
+        self.structural_keywords = ["A'))", "UNION", "SELECT", "FROM", "USERS", "--"]
+        
+        # Danh sách CỘT QUAN TRỌNG
+        self.unique_data_columns = ["ID", "EMAIL", "PASSWORD"]
+        
+        self.used_keywords = set()
+
+    def reset(self):
+        self.last_action_keyword = None
+        self.used_keywords = set()
 
     def calculate_reward(self, response, payload):
-        """
-        Trả về: (reward, done)
-        reward: Điểm thưởng (int)
-        done: Kết thúc episode (bool)
-        """
-        if response is None:
-            # Phạt nặng nếu request bị lỗi (timeout, connection...)
-            return -20, False
+        reward = 0.0
+        done = False
+        p_upper = payload.upper()
+        current_kw = self._extract_last_keyword(payload)
+        
+        # --- 1. LUẬT TỬ HÌNH: CẤM SPAM TỪ KHÓA ---
+        if current_kw in self.structural_keywords:
+            if current_kw in self.used_keywords: return -10.0, True 
+            self.used_keywords.add(current_kw)
 
-        status = response.status_code
-        text = response.text or ""
+        if current_kw in self.unique_data_columns:
+            if current_kw in self.used_keywords: return -10.0, True
+            self.used_keywords.add(current_kw)
+            
+        # Luật cấm spam NULL quá đà
+        if p_upper.count("NULL") > 6:
+            return -10.0, True
 
-        # Debug: show short snippet to help matching during training
-        # (Bạn có thể comment dòng print này lại khi chạy huấn luyện chính thức)
-        try:
-            snippet = text[:300]
-        except Exception:
-            snippet = str(text)
-        # print(f"[RewardSystem Debug] status={status}, payload='{payload}', snippet={snippet!r}")
+        # --- 2. LOGIC DI CHUYỂN (State Machine) ---
+        if self.last_action_keyword is None:
+            if "A'))" in current_kw: reward += 2.0 
+            else: return -10.0, True 
+        
+        else:
+            prev = self.last_action_keyword
+            
+            # [Giai đoạn 1: Khung sườn]
+            if "A'))" in prev and "UNION" in current_kw: reward += 3.0
+            elif "UNION" in prev and "SELECT" in current_kw: reward += 3.0
+            
+            # [Giai đoạn 2: CHỌN MÓN ĂN - CÓ THỨ TỰ]
+            elif ("SELECT" in prev or "," in prev):
+                
+                # --- QUY ĐỊNH THỨ TỰ NGHIÊM NGẶT ---
+                if current_kw in self.unique_data_columns:
+                    # Cấm quay xe nếu đã có NULL
+                    if "NULL" in self.used_keywords: return -10.0, True
+                    
+                    # 1. BẮT BUỘC ID ĐẦU TIÊN
+                    if current_kw == "ID":
+                        # ID luôn được chào đón đầu tiên
+                        reward += 5.0
+                        
+                    # 2. EMAIL CHỈ ĐƯỢC CHỌN NẾU ĐÃ CÓ ID
+                    elif current_kw == "EMAIL":
+                        if "ID" in self.used_keywords: reward += 5.0
+                        else: return -10.0, True # Chưa có ID mà chọn EMAIL -> CHẾT
+                        
+                    # 3. PASSWORD CHỈ ĐƯỢC CHỌN NẾU ĐÃ CÓ EMAIL
+                    elif current_kw == "PASSWORD":
+                        if "EMAIL" in self.used_keywords: reward += 5.0
+                        else: return -10.0, True # Chưa có EMAIL mà chọn PASS -> CHẾT
 
-        # Try parsing JSON body (if any) to search for success marker inside fields
-        json_body = None
-        try:
-            json_body = response.json()
-        except Exception:
-            json_body = None
+                elif "NULL" in current_kw:
+                    # NULL chỉ được chọn nếu đã lấy đủ 3 cột quan trọng (Hoặc chấp nhận mất điểm để lấp đầy)
+                    # Ở đây ta cho phép NULL lấp đầy, nhưng thưởng thấp
+                    reward += 1.0 
 
-        def contains_marker(obj):
-            """Recursively search strings inside JSON-like structures for the success marker."""
-            if obj is None:
-                return False
-            if isinstance(obj, str):
-                return self.success_marker in obj
-            if isinstance(obj, dict):
-                for v in obj.values():
-                    if contains_marker(v):
-                        return True
-                return False
-            if isinstance(obj, list):
-                for i in obj:
-                    if contains_marker(i):
-                        return True
-                return False
-            return False
+            # [Giai đoạn 3: Dấu phẩy]
+            elif (prev in self.unique_data_columns or prev == "NULL") and current_kw == ",":
+                reward += 2.0
+                
+            # [CHẶN LỖI CÚ PHÁP]
+            elif prev == "," and current_kw == ",": return -10.0, True 
+            elif (prev in self.unique_data_columns or prev == "NULL") and (current_kw in self.unique_data_columns or current_kw == "NULL"):
+                return -10.0, True
 
-        # 1. THÀNH CÔNG LỚN: Khai thác thành công
-        has_keywords = "UNION" in payload.upper() and "USERS" in payload.upper() and "SELECT" in payload.upper()
-        has_valid_start = payload.strip().startswith("'") or payload.strip().startswith("a") or payload.strip().startswith("b")
-        has_marker = self.success_marker in text or contains_marker(json_body)
-        is_cheating = "PRODUCTS" in payload.upper()
-
-        if status == 200 and has_marker and has_keywords and has_valid_start:
-            if is_cheating:
-                print(f"[RewardSystem] --- CHEAT DETECTED (Found marker but also 'Products'): Payload: {payload}")
-                return -10, False  # Phạt vì cố tình "cheat"
-            print(f"\n[RewardSystem] !!! SUCCESS: Payload: {payload}\n")
-            return 200, True  # Thưởng rất lớn, kết thúc episode
-
-        # 2. LỖI SQL CÓ GỢI Ý: Phạt nhẹ hơn, nhưng vẫn phạt
-        if status == 500 and self.error_marker in text:
-            if "SELECT" in payload.upper():
-                return -3, False  # Hint nhưng chưa full
-            return -5, False
-
-        # 3. DẤU HIỆU XẤU: Lỗi server chung
-        if status == 500:
-            return -25, False
-
-        # 4. DẤU HIỆU XẤU: Bị chặn
-        if status in [401, 403, 429]:
-            return -50, False
-
-        # 5. BÌNH THƯỜNG / KHÔNG HIỆU QUẢ (Status 200)
-        if status == 200:
-            try:
-                data_list = response.json().get('data', [])
-                count = len(data_list)
-            except:
-                count = self.normal_count  # Fallback
-
-            if "UNION" in payload.upper():
-                # ANTI-FARM: Chỉ thưởng nếu hint thực sự (mismatch/reduced rows)
-                if count == 0:
-                    # Empty: Good hint for column tune
-                    bonus = 10 if payload.lower().count("null") >= 5 else 5  # Bonus nếu có NULLs
-                    return bonus, False
-                elif count < self.normal_count:
-                    # Reduced: Partial match
-                    return 5, False
+            # [Giai đoạn 4: VỀ ĐÍCH]
+            elif current_kw == "FROM":
+                extracted_cols = [c for c in self.unique_data_columns if c in self.used_keywords]
+                if len(extracted_cols) == 3:
+                    reward += 50.0 
+                elif "SELECT" in self.used_keywords:
+                    reward -= 5.0
                 else:
-                    # Normal: Wasted UNION
-                    return -5, False
+                    return -10.0, True 
+
+            elif current_kw == "USERS":
+                if "FROM" in self.used_keywords: reward += 5.0
+                else: return -10.0, True
+
+            elif current_kw == "--":
+                if "USERS" in self.used_keywords: 
+                #     reward += 20.0 
+                #     done = True # <--- QUAN TRỌNG: CẮT ĐUÔI NGAY LẬP TỨC
+                # else: return -10.0, True
+            # Kiểm tra xem đã lấy đủ hàng nóng chưa
+                    extracted_cols = [c for c in self.unique_data_columns if c in self.used_keywords]
+                    
+                    if len(extracted_cols) == 3:
+                        # NẾU ĐÃ CÓ ĐỦ ID, EMAIL, PASSWORD MÀ CÒN CHỐT HẠ BẰNG "--"
+                        # => COI NHƯ LÀ CHIẾN THẮNG TUYỆT ĐỐI (SUCCESS)
+                        return 100.0, True 
+                    else:
+                        # Nếu chưa đủ hàng mà đòi chốt -> Phạt nhẹ hoặc thưởng ít
+                        reward += 20.0
+                        done = True
+                    
+                    # --------------------
+                else: return -10.0, True
+
+        # --- 3. WIN CHECK ---
+        if str(self.success_marker) in str(response.text):
+            return 100.0, True
+            
+        if "SQLITE_ERROR" in str(response.text):
+            if "SELECTs to the left and right of UNION" in str(response.text):
+                reward -= 0.5 
             else:
-                # No UNION: Normal search
-                if count == 0:
-                    return -2, False
-                if count == self.normal_count:
-                    return -1, False
-                return 0, False  # Neutral if unexpected count
+                reward -= 1.0 
 
-        # Trường hợp mặc định (e.g., incomplete UNION without SELECT)
-        if "UNION" in payload.upper() and "SELECT" not in payload.upper():
-            return -2, False  # Penalty for incomplete
+        self.last_action_keyword = current_kw
+        if len(payload) > 250: return -10.0, True
+            
+        return reward, done
 
-        return -1, False
+    def _extract_last_keyword(self, payload):
+        s = payload.upper().strip()
+        # Ưu tiên check các ký tự đặc biệt ở cuối trước
+        if s.endswith("--"): return "--"
+        if s.endswith("A'))"): return "A'))" # <--- SỬA LỖI Ở ĐÂY (Bỏ check len < 6)
+        
+        if s.endswith("USERS"): return "USERS"
+        if s.endswith("FROM"): return "FROM"
+        if s.endswith("NULL"): return "NULL"
+        if s.endswith(","): return ","
+        if s.endswith("PASSWORD"): return "PASSWORD"
+        if s.endswith("EMAIL"): return "EMAIL"
+        if s.endswith("ID"): return "ID"
+        if s.endswith("SELECT"): return "SELECT"
+        if s.endswith("UNION"): return "UNION"
+        
+        # Fallback cho trường hợp khởi đầu ngắn
+        if "A'))" in s and len(s) < 10: return "A'))"
+        
+        return "UNKNOWN"
