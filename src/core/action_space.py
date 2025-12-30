@@ -5,6 +5,7 @@ class ActionSpace:
             # 1. Mở đầu & Kết thúc
             "a'))", 
             " FROM Users",
+            " FROM sqlite_master",
             "--",
             
             # 2. Keywords SQL
@@ -13,6 +14,7 @@ class ActionSpace:
             
             # 3. Các cột dữ liệu (kèm dấu phẩy hoặc không để nó tự học cách đặt dấu phẩy)
             " id", " email", " password",
+            " type", " name", " tbl_name", " sql",
             " NULL",  # <--- Ghép dấu phẩy vào trước NULL
             ","
         ]

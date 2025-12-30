@@ -3,6 +3,8 @@ import configparser
 from src.environment.training_environment import TrainingEnvironment  # Thêm import này
 from src.environment.target_environment import TargetEnvironment
 from src.agent.q_learning_agent import QLearningAgent
+from src.agent.sarsa_agent import SarsaAgent  # <--- Mới
+from src.agent.random_agent import RandomAgent # <--- Mới
 import os
 import logging
 import time
@@ -54,15 +56,21 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
         env = TargetEnvironment(config_path)
 
     # 2. Setup Agent với tham số algorithm mới
-    agent = QLearningAgent(
-        action_space_size=env.get_action_space_size(),
-        lr=float(agent_cfg['learning_rate']),
-        gamma=float(agent_cfg['discount_factor']),
-        epsilon=float(agent_cfg['epsilon']),
-        epsilon_decay=float(agent_cfg['epsilon_decay']),
-        epsilon_min=float(agent_cfg['epsilon_min']),
-        algorithm=algorithm  # <--- TRUYỀN THAM SỐ VÀO ĐÂY
-    )
+    action_size = env.get_action_space_size()
+    lr = float(agent_cfg['learning_rate'])
+    gamma = float(agent_cfg['discount_factor'])
+    eps = float(agent_cfg['epsilon'])
+    eps_decay = float(agent_cfg['epsilon_decay'])
+    eps_min = float(agent_cfg['epsilon_min'])
+
+    if algorithm == 'q_learning':
+        agent = QLearningAgent(action_size, lr, gamma, eps, eps_decay, eps_min)
+    elif algorithm == 'sarsa':
+        agent = SarsaAgent(action_size, lr, gamma, eps, eps_decay, eps_min)
+    elif algorithm == 'random':
+        agent = RandomAgent(action_size)
+    else:
+        raise ValueError(f"Unknown algorithm: {algorithm}")
     
     logging.info(f"--- MODE: {algorithm.upper()} ---")
 
