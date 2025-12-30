@@ -14,7 +14,7 @@ import argparse
 # --- CÀI ĐẶT LOGGING ---
 # (Đã xóa phần logging cũ, tốt rồi)
 
-def run_training(config_path, model_save_path, model_load_path=None, env_type='training'):
+def run_training(config_path, model_save_path, model_load_path=None, env_type='training', algorithm='q_learning'):
     
     # --- 1. CÀI ĐẶT ĐƯỜNG DẪN ĐỘNG ---
     if env_type == 'training':
@@ -50,20 +50,21 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
     # 1. Khởi tạo Môi trường
     if env_type == 'training':
         env = TrainingEnvironment(config_path)
-        logging.info("Sử dụng TrainingEnvironment (mock) cho speed.")
     else:
         env = TargetEnvironment(config_path)
-        logging.info("Sử dụng TargetEnvironment (real HTTP).")
-    
-    # 2. Khởi tạo Agent (MỘT LẦN DUY NHẤT)
+
+    # 2. Setup Agent với tham số algorithm mới
     agent = QLearningAgent(
         action_space_size=env.get_action_space_size(),
         lr=float(agent_cfg['learning_rate']),
         gamma=float(agent_cfg['discount_factor']),
         epsilon=float(agent_cfg['epsilon']),
         epsilon_decay=float(agent_cfg['epsilon_decay']),
-        epsilon_min=float(agent_cfg['epsilon_min'])
+        epsilon_min=float(agent_cfg['epsilon_min']),
+        algorithm=algorithm  # <--- TRUYỀN THAM SỐ VÀO ĐÂY
     )
+    
+    logging.info(f"--- MODE: {algorithm.upper()} ---")
 
     if model_load_path:
         try:
@@ -121,19 +122,35 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
         done = False
         episode_reward = 0
         episode_succeeded = False
+        
+        # Chọn hành động đầu tiên cho Episode
+        action = agent.choose_action(state)
 
         for step in range(max_steps):
-            action = agent.choose_action(state)
+            # Thực hiện hành động
             next_state, reward, done = env.step(action)
-            agent.learn(state, action, reward, next_state)
             
+            # Chọn hành động tiếp theo (Cần cho SARSA)
+            next_action = agent.choose_action(next_state)
+            
+            # Học
+            if algorithm == 'sarsa':
+                # SARSA cần truyền next_action
+                agent.learn(state, action, reward, next_state, next_action)
+            else:
+                # Q-Learning và Random (Random hàm learn sẽ bỏ qua)
+                agent.learn(state, action, reward, next_state)
+            
+            # Cập nhật trạng thái
             state = next_state
+            action = next_action # Quan trọng: Action của bước sau thành Action hiện tại
+            
             episode_reward += reward
             
-            if reward > 50:
+            if reward > 50: # Check Win condition
                 total_successes += 1
                 episode_succeeded = True
-                logging.info(f"EPISODE {episode}: SUCCESS! Payload: {state} (Reward: {episode_reward})")
+                logging.info(f"EPISODE {episode}: SUCCESS! (Reward: {episode_reward})")
                 break
             
             if done:
@@ -211,19 +228,25 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
     plt.ylabel(f"Average Reward ({log_freq} Episodes)")
     plt.grid(True)
 
-    # --- THAY ĐỔI 1: DỜI HỘP CHÚ THÍCH (LEGEND) LÊN TRÊN ---
-    plt.legend(loc='lower center', bbox_to_anchor=(0.5, 1.05), ncol=1, fancybox=True, shadow=True)
 
     # --- THAY ĐỔI 2: DỜI HỘP METRICS XUỐNG DƯỚI ---
     plt.subplots_adjust(bottom=0.25) 
     
     plt.figtext(0.95, 0.05, stats_text, ha="right", va="bottom", fontsize=9,
-                bbox={"boxstyle": "round", "facecolor": "whitesmoke", "edgecolor": "gray"})
+                bbox={"boxstyle": "round", "facecolor": "white", "edgecolor": "gray"})
+    
+    suffix = ""
+    if model_load_path:
+        suffix = "_transfer"
+    
+    # Tên file sẽ thành: training_q_learning_transfer_chart.png
+    chart_filename = f"{env_type}_{algorithm}{suffix}_chart.png"
+    chart_save_path = os.path.join(output_dir, chart_filename)
     
     # --- Hết thay đổi ---
     
     # <<< THAY ĐỔI 2: DÙNG TÊN FILE CHART ĐỘNG ---
-    chart_save_path = os.path.join(output_dir, f"{env_type}_chart.png") 
+    # chart_save_path = os.path.join(output_dir, f"{env_type}_{algorithm}_chart.png") 
     
     plt.savefig(chart_save_path)
     logging.info(f"Lưu chart: {chart_save_path}")
@@ -256,6 +279,13 @@ if __name__ == "__main__":
         default=None, 
         help="(Tùy chọn) Đường dẫn tới model đã huấn luyện để tải"
     )
+    parser.add_argument(
+        '--algo', 
+        type=str, 
+        default='q_learning', 
+        choices=['q_learning', 'sarsa', 'random'],
+        help="Thuật toán: 'q_learning', 'sarsa', hoặc 'random'"
+    )
 
     args = parser.parse_args()
 
@@ -267,5 +297,7 @@ if __name__ == "__main__":
         config_path=args.config,
         model_save_path=args.save_path,
         model_load_path=args.load_path,
-        env_type=env_type_str
+        env_type=env_type_str,
+        algorithm=args.algo
     )
+    
