@@ -1,30 +1,104 @@
-2025-12-20 17:15:36,584 - INFO - Bắt đầu quá trình huấn luyện với config: config/config_target.ini | Env: target
-2025-12-20 17:15:36,588 - INFO - --- MODE: RANDOM ---
-2025-12-20 17:15:36,589 - INFO - --- Bắt đầu 200 episodes ---
-2025-12-20 17:15:37,278 - INFO - Episode 10: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:38,322 - INFO - Episode 20: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:39,117 - INFO - Episode 30: Avg Reward(10ep): -9.90 | Successes(10ep): 0
-2025-12-20 17:15:39,812 - INFO - Episode 40: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:40,492 - INFO - Episode 50: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:41,108 - INFO - Episode 60: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:41,644 - INFO - Episode 70: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:42,430 - INFO - Episode 80: Avg Reward(10ep): -9.70 | Successes(10ep): 0
-2025-12-20 17:15:43,005 - INFO - Episode 90: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:43,731 - INFO - Episode 100: Avg Reward(10ep): -9.70 | Successes(10ep): 0
-2025-12-20 17:15:44,306 - INFO - Episode 110: Avg Reward(10ep): -9.90 | Successes(10ep): 0
-2025-12-20 17:15:45,113 - INFO - Episode 120: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:45,756 - INFO - Episode 130: Avg Reward(10ep): -9.70 | Successes(10ep): 0
-2025-12-20 17:15:46,294 - INFO - Episode 140: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:46,967 - INFO - Episode 150: Avg Reward(10ep): -9.70 | Successes(10ep): 0
-2025-12-20 17:15:47,600 - INFO - Episode 160: Avg Reward(10ep): -10.00 | Successes(10ep): 0
-2025-12-20 17:15:48,238 - INFO - Episode 170: Avg Reward(10ep): -9.80 | Successes(10ep): 0
-2025-12-20 17:15:48,817 - INFO - Episode 180: Avg Reward(10ep): -9.90 | Successes(10ep): 0
-2025-12-20 17:15:49,456 - INFO - Episode 190: Avg Reward(10ep): -9.70 | Successes(10ep): 0
-2025-12-20 17:15:50,184 - INFO - Episode 200: Avg Reward(10ep): -9.50 | Successes(10ep): 0
-2025-12-20 17:15:50,185 - INFO - 
---- Hoàn tất ---
-2025-12-20 17:15:50,186 - INFO - Tổng success: 0/200 (0.00%)
-2025-12-20 17:15:50,187 - INFO - Reward trung bình (toàn bộ): -9.88
-2025-12-20 17:15:50,188 - INFO - Reward trung bình (10% cuối): -9.60
-2025-12-20 17:15:50,189 - INFO - Tổng thời gian chạy: 13.60 giây
-2025-12-20 17:15:50,902 - INFO - Lưu chart: results/target_results\target_random_chart.png
+2025-12-31 10:14:43,221 - INFO - TARGET MODE: Epsilon = 0.3 (Fine-tuning)
+2025-12-31 10:14:43,222 - INFO - --- Bắt đầu 1000 episodes (q_learning) ---
+2025-12-31 10:14:47,032 - INFO - Ep 10: Avg Reward: -9.00
+2025-12-31 10:14:48,149 - INFO - Ep 20: Avg Reward: -9.30
+2025-12-31 10:14:48,780 - INFO - Ep 30: Avg Reward: -10.00
+2025-12-31 10:14:49,651 - INFO - Ep 40: Avg Reward: -9.50
+2025-12-31 10:14:50,191 - INFO - Ep 50: Avg Reward: -10.00
+2025-12-31 10:14:50,792 - INFO - Ep 60: Avg Reward: -10.00
+2025-12-31 10:14:51,568 - INFO - Ep 70: Avg Reward: -10.00
+2025-12-31 10:14:52,424 - INFO - Ep 80: Avg Reward: -10.00
+2025-12-31 10:14:53,011 - INFO - Ep 90: Avg Reward: -10.00
+2025-12-31 10:14:54,685 - INFO - Ep 100: Avg Reward: -9.40
+2025-12-31 10:14:55,294 - INFO - Ep 110: Avg Reward: -9.90
+2025-12-31 10:14:56,080 - INFO - Ep 120: Avg Reward: -10.00
+2025-12-31 10:14:56,648 - INFO - Ep 130: Avg Reward: -10.00
+2025-12-31 10:14:57,700 - INFO - Ep 140: Avg Reward: -10.00
+2025-12-31 10:14:59,174 - INFO - Ep 150: Avg Reward: -9.50
+2025-12-31 10:15:00,737 - INFO - Ep 160: Avg Reward: -10.00
+2025-12-31 10:15:04,758 - INFO - Ep 170: Avg Reward: -10.00
+2025-12-31 10:15:06,813 - INFO - Ep 180: Avg Reward: -10.00
+2025-12-31 10:15:08,796 - INFO - Ep 190: Avg Reward: -10.00
+2025-12-31 10:15:10,684 - INFO - Ep 200: Avg Reward: -10.00
+2025-12-31 10:15:12,744 - INFO - Ep 210: Avg Reward: -10.00
+2025-12-31 10:15:14,552 - INFO - Ep 220: Avg Reward: -10.00
+2025-12-31 10:15:16,466 - INFO - Ep 230: Avg Reward: -10.00
+2025-12-31 10:15:18,285 - INFO - Ep 240: Avg Reward: -10.00
+2025-12-31 10:15:19,986 - INFO - Ep 250: Avg Reward: -10.00
+2025-12-31 10:15:21,641 - INFO - Ep 260: Avg Reward: -10.00
+2025-12-31 10:15:23,572 - INFO - Ep 270: Avg Reward: -10.00
+2025-12-31 10:15:25,597 - INFO - Ep 280: Avg Reward: -10.00
+2025-12-31 10:15:27,267 - INFO - Ep 290: Avg Reward: -10.00
+2025-12-31 10:15:28,307 - INFO - Ep 300: Avg Reward: -10.00
+2025-12-31 10:15:30,277 - INFO - Ep 310: Avg Reward: -9.50
+2025-12-31 10:15:33,013 - INFO - Ep 320: Avg Reward: -10.00
+2025-12-31 10:15:34,485 - INFO - Ep 330: Avg Reward: -10.00
+2025-12-31 10:15:35,657 - INFO - Ep 340: Avg Reward: -10.00
+2025-12-31 10:15:36,666 - INFO - Ep 350: Avg Reward: -10.00
+2025-12-31 10:15:37,516 - INFO - Ep 360: Avg Reward: -10.00
+2025-12-31 10:15:38,348 - INFO - Ep 370: Avg Reward: -10.00
+2025-12-31 10:15:39,092 - INFO - Ep 380: Avg Reward: -10.00
+2025-12-31 10:15:39,993 - INFO - Ep 390: Avg Reward: -10.00
+2025-12-31 10:15:40,750 - INFO - Ep 400: Avg Reward: -10.00
+2025-12-31 10:15:42,402 - INFO - Ep 410: Avg Reward: -9.70
+2025-12-31 10:15:43,231 - INFO - Ep 420: Avg Reward: -10.00
+2025-12-31 10:15:44,450 - INFO - Ep 430: Avg Reward: -10.00
+2025-12-31 10:15:45,213 - INFO - Ep 440: Avg Reward: -10.00
+2025-12-31 10:15:45,888 - INFO - Ep 450: Avg Reward: -10.00
+2025-12-31 10:15:46,653 - INFO - Ep 460: Avg Reward: -10.00
+2025-12-31 10:15:47,313 - INFO - Ep 470: Avg Reward: -10.00
+2025-12-31 10:15:48,049 - INFO - Ep 480: Avg Reward: -10.00
+2025-12-31 10:15:49,261 - INFO - Ep 490: Avg Reward: -10.00
+2025-12-31 10:15:50,176 - INFO - Ep 500: Avg Reward: -10.00
+2025-12-31 10:15:50,847 - INFO - Ep 510: Avg Reward: -10.00
+2025-12-31 10:15:51,728 - INFO - Ep 520: Avg Reward: -10.00
+2025-12-31 10:15:52,343 - INFO - Ep 530: Avg Reward: -10.00
+2025-12-31 10:15:52,999 - INFO - Ep 540: Avg Reward: -10.00
+2025-12-31 10:15:53,625 - INFO - Ep 550: Avg Reward: -10.00
+2025-12-31 10:15:54,686 - INFO - Ep 560: Avg Reward: -10.00
+2025-12-31 10:15:55,478 - INFO - Ep 570: Avg Reward: -10.00
+2025-12-31 10:15:56,140 - INFO - Ep 580: Avg Reward: -10.00
+2025-12-31 10:15:56,709 - INFO - Ep 590: Avg Reward: -10.00
+2025-12-31 10:15:57,559 - INFO - Ep 600: Avg Reward: -10.00
+2025-12-31 10:15:58,390 - INFO - Ep 610: Avg Reward: -10.00
+2025-12-31 10:15:59,127 - INFO - Ep 620: Avg Reward: -10.00
+2025-12-31 10:15:59,865 - INFO - Ep 630: Avg Reward: -10.00
+2025-12-31 10:16:00,510 - INFO - Ep 640: Avg Reward: -10.00
+2025-12-31 10:16:01,191 - INFO - Ep 650: Avg Reward: -10.00
+2025-12-31 10:16:02,206 - INFO - Ep 660: Avg Reward: -10.00
+2025-12-31 10:16:02,899 - INFO - Ep 670: Avg Reward: -10.00
+2025-12-31 10:16:03,697 - INFO - Ep 680: Avg Reward: -10.00
+2025-12-31 10:16:04,463 - INFO - Ep 690: Avg Reward: -10.00
+2025-12-31 10:16:05,263 - INFO - Ep 700: Avg Reward: -10.00
+2025-12-31 10:16:05,895 - INFO - Ep 710: Avg Reward: -10.00
+2025-12-31 10:16:06,549 - INFO - Ep 720: Avg Reward: -10.00
+2025-12-31 10:16:07,278 - INFO - Ep 730: Avg Reward: -10.00
+2025-12-31 10:16:08,027 - INFO - Ep 740: Avg Reward: -10.00
+2025-12-31 10:16:08,610 - INFO - Ep 750: Avg Reward: -10.00
+2025-12-31 10:16:09,208 - INFO - Ep 760: Avg Reward: -10.00
+2025-12-31 10:16:09,789 - INFO - Ep 770: Avg Reward: -10.00
+2025-12-31 10:16:10,361 - INFO - Ep 780: Avg Reward: -10.00
+2025-12-31 10:16:10,926 - INFO - Ep 790: Avg Reward: -10.00
+2025-12-31 10:16:11,772 - INFO - Ep 800: Avg Reward: -10.00
+2025-12-31 10:16:13,309 - INFO - Ep 810: Avg Reward: -10.00
+2025-12-31 10:16:13,962 - INFO - Ep 820: Avg Reward: -10.00
+2025-12-31 10:16:14,869 - INFO - Ep 830: Avg Reward: -10.00
+2025-12-31 10:16:16,134 - INFO - Ep 840: Avg Reward: -9.40
+2025-12-31 10:16:16,748 - INFO - Ep 850: Avg Reward: -10.00
+2025-12-31 10:16:17,481 - INFO - Ep 860: Avg Reward: -10.00
+2025-12-31 10:16:18,446 - INFO - Ep 870: Avg Reward: -10.00
+2025-12-31 10:16:19,589 - INFO - Ep 880: Avg Reward: -10.00
+2025-12-31 10:16:20,620 - INFO - Ep 890: Avg Reward: -10.00
+2025-12-31 10:16:21,646 - INFO - Ep 900: Avg Reward: -10.00
+2025-12-31 10:16:22,494 - INFO - Ep 910: Avg Reward: -10.00
+2025-12-31 10:16:23,334 - INFO - Ep 920: Avg Reward: -10.00
+2025-12-31 10:16:23,997 - INFO - Ep 930: Avg Reward: -10.00
+2025-12-31 10:16:25,106 - INFO - Ep 940: Avg Reward: -10.00
+2025-12-31 10:16:25,827 - INFO - Ep 950: Avg Reward: -10.00
+2025-12-31 10:16:26,534 - INFO - Ep 960: Avg Reward: -10.00
+2025-12-31 10:16:27,379 - INFO - Ep 970: Avg Reward: -10.00
+2025-12-31 10:16:28,053 - INFO - Ep 980: Avg Reward: -10.00
+2025-12-31 10:16:28,783 - INFO - Ep 990: Avg Reward: -10.00
+2025-12-31 10:16:29,661 - INFO - Ep 1000: Avg Reward: -10.00
+2025-12-31 10:16:29,697 - INFO - Đã lưu dữ liệu biểu đồ tại: results/target_results/q_learning_transfer_final_metrics.json
+2025-12-31 10:16:33,137 - INFO - Đã lưu biểu đồ ảnh tại: results/target_results/q_learning_transfer_final_chart.png
