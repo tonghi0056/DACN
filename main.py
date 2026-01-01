@@ -78,6 +78,9 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
     moving_avg_rewards = []
     moving_avg_episodes = [] 
     
+    # Biến đếm thành công
+    total_successes = 0 
+    
     log_freq = 10 if total_episodes <= 1000 else 100
     
     logging.info(f"--- Bắt đầu {total_episodes} episodes ({algorithm}) ---")
@@ -101,6 +104,12 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
             state = next_state
             action = next_action 
             episode_reward += reward
+            
+            # Logic tính Success: Giả sử reward dương lớn (>50) là thành công
+            if reward > 50:
+                total_successes += 1
+                break 
+            
             if done: break
         
         rewards_per_episode.append(episode_reward)
@@ -111,12 +120,11 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
             avg_reward = sum(last_n) / len(last_n)
             moving_avg_rewards.append(avg_reward)
             moving_avg_episodes.append(episode + 1)
-            logging.info(f"Ep {episode + 1}: Avg Reward: {avg_reward:.2f}")
+            logging.info(f"Ep {episode + 1}: Avg Reward: {avg_reward:.2f} | Successes: {total_successes}")
 
-    # 5. Lưu Model & METRICS (ĐÃ FIX LỖI TẠI ĐÂY)
+    # 5. Lưu Model & METRICS
     agent.save_model(model_save_path)
     
-    # --- SỬ DỤNG os.path.splitext ĐỂ TÁCH ĐUÔI FILE AN TOÀN ---
     base_name = os.path.splitext(model_save_path)[0]
     metrics_path = base_name + "_metrics.json"
 
@@ -132,15 +140,52 @@ def run_training(config_path, model_save_path, model_load_path=None, env_type='t
     
     logging.info(f"Đã lưu dữ liệu biểu đồ tại: {metrics_path}")
     
-    # Vẽ biểu đồ đơn
-    plt.figure(figsize=(10, 5))
-    plt.plot(moving_avg_episodes, moving_avg_rewards)
-    plt.title(f"{algorithm.upper()} - {env_type}")
+    # --- TÍNH TOÁN THÔNG SỐ ĐỂ IN VÀO ẢNH ---
+    end_time = time.time()
+    total_duration = end_time - start_time
     
-    # Lưu ảnh chart cùng tên với model nhưng đuôi png
+    stats_text = "No Data"
+    if total_episodes > 0:
+        success_rate = (total_successes / total_episodes) * 100
+        avg_reward_overall = sum(rewards_per_episode) / total_episodes
+        
+        # Tính reward trung bình 10% cuối
+        last_10_percent = int(total_episodes * 0.9)
+        last_10_rewards = rewards_per_episode[last_10_percent:]
+        avg_reward_last_10 = sum(last_10_rewards) / len(last_10_rewards) if last_10_rewards else 0
+
+        # Nội dung text hiển thị
+        stats_text = (
+            f"Algorithm: {algorithm.upper()}\n"
+            f"Total Success: {total_successes}/{total_episodes} ({success_rate:.2f}%)\n"
+            f"Avg Reward (All): {avg_reward_overall:.2f}\n"
+            f"Avg Reward (Last 10%): {avg_reward_last_10:.2f}\n"
+            f"Time: {total_duration:.2f}s"
+        )
+        # In ra log luôn cho chắc
+        logging.info("\n" + stats_text)
+
+    # --- VẼ BIỂU ĐỒ VÀ CHÈN KHUNG TEXT ---
+    plt.figure(figsize=(10, 6)) # Khung hình rộng hơn xíu
+    plt.plot(moving_avg_episodes, moving_avg_rewards, label='Avg Reward', linewidth=2)
+    plt.title(f"Training Progress - {algorithm.upper()} ({env_type} mode)", fontsize=14)
+    plt.xlabel("Episode")
+    plt.ylabel("Average Reward")
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend()
+    
+    # [QUAN TRỌNG] Chừa khoảng trống bên dưới biểu đồ (Bottom Margin)
+    plt.subplots_adjust(bottom=0.25)
+    
+    # [QUAN TRỌNG] Vẽ cái hộp Text vào khoảng trống đó
+    # x=0.95, y=0.05: Góc dưới bên phải
+    plt.figtext(0.95, 0.05, stats_text, ha="right", va="bottom", fontsize=10,
+                bbox={"boxstyle": "round,pad=0.5", "facecolor": "#f0f0f0", "edgecolor": "gray", "alpha": 0.9})
+    
+    # Lưu ảnh
     chart_path = base_name + "_chart.png"
     plt.savefig(chart_path)
-    logging.info(f"Đã lưu biểu đồ ảnh tại: {chart_path}")
+    logging.info(f"Đã lưu biểu đồ (có bảng thông số) tại: {chart_path}")
     # plt.show()
 
 if __name__ == "__main__":
