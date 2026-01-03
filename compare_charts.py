@@ -1,128 +1,140 @@
 import matplotlib.pyplot as plt
 import json
 import os
-import sys
+import csv
+import numpy as np
 
-def load_metrics(filepath):
-    """Đọc dữ liệu từ file _metrics.json"""
+# --- CẤU HÌNH ĐƯỜNG DẪN ---
+TRAIN_DIR = "results/train_results"
+TARGET_DIR = "results/target_results"
+
+# File nguồn
+FILES = {
+    # JSON chỉ dùng để vẽ đường cong học (Training Trend)
+    "TRAIN_QL": os.path.join(TRAIN_DIR, "q_learning_trained_metrics.json"),
+    "TRAIN_SARSA": os.path.join(TRAIN_DIR, "sarsa_trained_metrics.json"),
+    
+    # CSV DUY NHẤT để lấy thời gian chạy
+    "CSV_BENCHMARK": os.path.join(TARGET_DIR, "agent_benchmark.csv")
+}
+
+def load_json(filepath):
+    if not os.path.exists(filepath): return {}
+    with open(filepath, 'r') as f: return json.load(f)
+
+def get_smooth_data(episodes, rewards, window_size=100):
+    """Làm mượt dữ liệu Training"""
+    if not episodes or not rewards or len(rewards) < window_size:
+        return episodes, rewards
+    
+    window = np.ones(window_size) / window_size
+    y_smooth = np.convolve(rewards, window, mode='valid')
+    x_smooth = episodes[len(episodes) - len(y_smooth):]
+    return x_smooth, y_smooth
+
+def get_time_from_single_csv(filepath, algo_keyword):
+    """
+    Chỉ đọc file agent_benchmark.csv.
+    Tìm dòng mới nhất có chứa từ khóa algo_keyword trong cột Algorithm.
+    """
     if not os.path.exists(filepath):
-        print(f"[-] Không tìm thấy file: {filepath}")
-        return None, None
-    with open(filepath, 'r') as f:
-        data = json.load(f)
-    return data['episodes'], data['rewards']
+        print(f"[-] Không tìm thấy file CSV: {filepath}")
+        return 0.0
+    
+    found_duration = 0.0
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            # Duyệt ngược từ dưới lên để lấy kết quả chạy mới nhất
+            for row in reversed(list(reader)):
+                algo = row.get('Algorithm', '').upper()
+                
+                # Tìm từ khóa (VD: SARSA, Q_LEARNING, TRANSFER)
+                if algo_keyword in algo:
+                    # Ưu tiên cột 'Duration (s)', nếu không có thì thử 'Total Time (s)'
+                    val = row.get('Duration (s)', row.get('Total Time (s)', '0'))
+                    found_duration = float(val)
+                    break 
+    except Exception as e:
+        print(f"[-] Lỗi đọc CSV: {e}")
+        
+    return found_duration
 
-def plot_comparison(title, lines, filename_suffix):
-    """
-    Hàm vẽ biểu đồ chung.
-    lines: List các tuple (Label, FilePath, Color, LineStyle)
-    """
-    plt.figure(figsize=(12, 6))
+# --- 1. VẼ BIỂU ĐỒ TRAINING ---
+def plot_training_trend():
+    print("--- [1] Vẽ biểu đồ Training (Từ JSON) ---")
+    d_ql = load_json(FILES["TRAIN_QL"])
+    d_sarsa = load_json(FILES["TRAIN_SARSA"])
     
-    has_data = False
-    for label, path, color, style in lines:
-        eps, rewards = load_metrics(path)
-        if eps and rewards:
-            plt.plot(eps, rewards, label=label, color=color, linestyle=style, linewidth=2)
-            has_data = True
+    plt.figure(figsize=(10, 6))
     
-    if not has_data:
-        print(f"[-] Bỏ qua biểu đồ '{title}' do thiếu dữ liệu.")
-        plt.close()
-        return
-
-    plt.title(title, fontsize=14)
-    plt.xlabel("Episode", fontsize=12)
-    plt.ylabel("Average Reward", fontsize=12)
-    plt.legend(fontsize=10)
-    plt.grid(True, linestyle='--', alpha=0.7)
-    
-    # Lưu biểu đồ
-    os.makedirs("results/comparison_charts", exist_ok=True)
-    save_path = f"results/comparison_charts/{filename_suffix}.png"
-    plt.savefig(save_path)
-    print(f"[+] Đã lưu biểu đồ: {save_path}")
+    if d_ql:
+        x, y = get_smooth_data(d_ql.get('episodes'), d_ql.get('rewards'), window_size=100)
+        plt.plot(x, y, label="Q-Learning", color="#d32f2f", linewidth=3)
+        
+    if d_sarsa:
+        x, y = get_smooth_data(d_sarsa.get('episodes'), d_sarsa.get('rewards'), window_size=100)
+        plt.plot(x, y, label="SARSA", color="#1976d2", linestyle="--", linewidth=3)
+        
+    plt.title("Training Performance: Q-Learning vs SARSA", fontsize=14, fontweight='bold')
+    plt.xlabel("Episodes")
+    plt.ylabel("Average Reward")
+    plt.legend(fontsize=12)
+    plt.grid(True, linestyle=':', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(os.path.join(TARGET_DIR, "1_training_trend.png"), dpi=300)
+    print("    -> Đã lưu: 1_training_trend.png")
     plt.close()
 
-def main():
-    # ĐỊNH NGHĨA ĐƯỜNG DẪN CÁC FILE METRICS
-    # Lưu ý: Các file này được tạo ra từ main.py mới (đuôi _metrics.json)
+# --- 2. VẼ BIỂU ĐỒ THỜI GIAN (CHỈ DÙNG AGENT_BENCHMARK.CSV) ---
+def plot_time_comparison():
+    print("--- [2] Vẽ biểu đồ Thời gian (Chỉ từ agent_benchmark.csv) ---")
     
-    # 1. Baseline (Chưa học)
-    BASE_RANDOM = "results/target_results/random_baseline_metrics.json"
-    BASE_SARSA = "results/target_results/sarsa_baseline_metrics.json"
-    BASE_QL = "results/target_results/q_learning_baseline_metrics.json"
+    csv_file = FILES["CSV_BENCHMARK"]
     
-    # 2. Evaluated (Đã học từ Mock mang sang test)
-    EVAL_SARSA = "results/target_results/sarsa_evaluated_metrics.json"
-    EVAL_QL = "results/target_results/q_learning_evaluated_metrics.json"
+    # 1. Q-Learning
+    t_ql = get_time_from_single_csv(csv_file, "Q_LEARNING")
     
-    # 3. Transfer (Học tiếp)
-    TRANS_QL = "results/target_results/q_learning_transfer_final_metrics.json"
+    # 2. SARSA
+    t_sarsa = get_time_from_single_csv(csv_file, "SARSA")
+    
+    # 3. Q+Transfer (Tìm từ khóa TRANSFER hoặc Q_TRANSFER)
+    t_transfer = get_time_from_single_csv(csv_file, "TRANSFER")
+    # Phòng hờ nếu bạn lưu tên là GOD_MODE
+    if t_transfer == 0: 
+        t_transfer = get_time_from_single_csv(csv_file, "GOD")
 
-    # --- VẼ CÁC BIỂU ĐỒ THEO YÊU CẦU ---
+    times = {
+        "Q-Learning": t_ql,
+        "SARSA": t_sarsa,
+        "Q+Transfer": t_transfer
+    }
+    
+    # Lọc bỏ giá trị 0
+    times = {k: v for k, v in times.items() if v > 0}
+    
+    if not times:
+        print("[-] Không tìm thấy dữ liệu thời gian trong file agent_benchmark.csv")
+        return
 
-    # Biểu đồ 1: Tổng hợp Random, SARSA, QL (Mốc ban đầu - Chưa học)
-    plot_comparison(
-        "Baseline Comparison (Untrained Agents)",
-        [
-            ("Random", BASE_RANDOM, "gray", "--"),
-            ("SARSA (Untrained)", BASE_SARSA, "blue", "-"),
-            ("Q-Learning (Untrained)", BASE_QL, "orange", "-")
-        ],
-        "1_baseline_comparison"
-    )
-
-    # Biểu đồ 2: SARSA - Chưa học vs Học rồi
-    plot_comparison(
-        "SARSA Improvement (Before vs After Training)",
-        [
-            ("SARSA (Untrained)", BASE_SARSA, "green", "--"), # Xanh: Chưa học
-            ("SARSA (Trained)", EVAL_SARSA, "red", "-")       # Đỏ: Học rồi
-        ],
-        "2_sarsa_improvement"
-    )
-
-    # Biểu đồ 3: Q-Learning - Chưa học vs Học rồi
-    plot_comparison(
-        "Q-Learning Improvement (Before vs After Training)",
-        [
-            ("Q-Learning (Untrained)", BASE_QL, "green", "--"), # Xanh: Chưa học
-            ("Q-Learning (Trained)", EVAL_QL, "red", "-")       # Đỏ: Học rồi
-        ],
-        "3_qlearning_improvement"
-    )
-
-    # Biểu đồ 4: Random vs SARSA (Học) vs QL (Học)
-    plot_comparison(
-        "Trained Agents vs Random Baseline",
-        [
-            ("Random Baseline", BASE_RANDOM, "gray", "--"),
-            ("SARSA (Trained)", EVAL_SARSA, "blue", "-"),
-            ("Q-Learning (Trained)", EVAL_QL, "orange", "-")
-        ],
-        "4_trained_vs_random"
-    )
-
-    # Biểu đồ 5: So sánh SARSA vs Q-Learning (Đã học)
-    plot_comparison(
-        "Algorithm Comparison: SARSA vs Q-Learning (Trained)",
-        [
-            ("SARSA (Trained)", EVAL_SARSA, "blue", "-"),
-            ("Q-Learning (Trained)", EVAL_QL, "red", "-")
-        ],
-        "5_sarsa_vs_qlearning"
-    )
-
-    # Biểu đồ 6: Q-Learning (Học rồi) vs Q-Learning (Transfer)
-    plot_comparison(
-        "Transfer Learning Effect (Q-Learning)",
-        [
-            ("Q-Learning (Trained Only)", EVAL_QL, "blue", "--"),
-            ("Q-Learning (Transfer/Fine-tuned)", TRANS_QL, "red", "-")
-        ],
-        "6_transfer_effect"
-    )
+    plt.figure(figsize=(9, 6))
+    colors = ['#757575', '#1976d2', '#2e7d32'] # Xám, Xanh Dương, Xanh Lá
+    
+    bars = plt.bar(times.keys(), times.values(), color=colors[:len(times)], width=0.6, edgecolor='black')
+    
+    plt.title("Execution Time Comparison", fontsize=14, fontweight='bold')
+    plt.ylabel("Total Duration (Seconds)")
+    plt.grid(axis='y', linestyle=':', alpha=0.6)
+    
+    for bar in bars:
+        h = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, h, f"{h:.2f}s", ha='center', va='bottom', fontweight='bold', fontsize=11)
+        
+    plt.tight_layout()
+    plt.savefig(os.path.join(TARGET_DIR, "2_time_comparison.png"), dpi=300)
+    print("    -> Đã lưu: 2_time_comparison.png")
+    plt.close()
 
 if __name__ == "__main__":
-    main()
+    plot_training_trend()
+    plot_time_comparison()

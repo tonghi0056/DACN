@@ -1,154 +1,137 @@
+# FILE: src/core/reward_system.py
+
 class RewardSystem:
     def __init__(self, normal_count, success_marker, error_marker, env_type='training'):
-        self.success_marker = success_marker
-        self.last_action_keyword = None 
+        self.env_type = env_type
+        self.collected_columns = []
+        self.current_target_table = None
         
-        # Danh sách từ khóa CẤU TRÚC (Chỉ được dùng 1 lần)
-        self.structural_keywords = ["A'))", "UNION", "SELECT", "FROM", "USERS", "--"]
+        # Định nghĩa các giai đoạn (Phases)
+        self.PHASE_START = 0
+        self.PHASE_UNION = 1
+        self.PHASE_SELECT = 2
+        self.PHASE_COLLECT = 3
+        self.PHASE_FROM = 4
+        self.PHASE_END = 5
         
-        # Danh sách CỘT QUAN TRỌNG
-        self.unique_data_columns = ["ID", "EMAIL", "PASSWORD"]
+        self.current_phase = self.PHASE_START
         
-        self.used_keywords = set()
+        # TARGET MAP (Danh sách bảng và cột mục tiêu)
+        self.TARGET_MAP = {
+            "sqlite_master": ["type", "name", "tbl_name", "sql"],
+            "Users": ["id", "email", "password", "role", "totpSecret", "deluxeToken"],
+            "SecurityAnswers": ["UserId", "answer", "SecurityQuestionId"],
+            "Addresses": ["fullName", "mobileNum", "zipCode", "streetAddress", "city", "state", "country"],
+            "Cards": ["fullName", "cardNum", "expMonth", "expYear", "UserId"],
+            "Challenges": ["name", "key", "description", "solved", "category", "difficulty"],
+            "BasketItems": ["BasketId", "ProductId", "quantity"],
+            "Baskets": ["id", "coupon", "UserId"],
+            "Captchas": ["captchaId", "captcha", "answer"],
+            "Complaints": ["message", "file", "UserId"],
+            "Deliveries": ["name", "price", "eta", "icon"],
+            "Feedbacks": ["comment", "rating", "UserId"],
+            "ImageCaptchas": ["image", "answer", "UserId"],
+            "Memories": ["caption", "imagePath", "UserId"],
+            "PrivacyRequests": ["deletionRequested", "UserId"],
+            "Quantities": ["ProductId", "quantity", "limitPerUser"],
+            "Recycles": ["quantity", "isPickup", "date", "UserId"],
+            "SecurityQuestions": ["question", "id"],
+            "Wallets": ["balance", "UserId"],
+            "Products": ["name", "price", "image", "description"]
+        }
 
-    def reset(self):
-        self.last_action_keyword = None
-        self.used_keywords = set()
+    def set_target(self, table_name):
+        self.current_target_table = table_name
+        self.collected_columns = []
+        self.current_phase = self.PHASE_START
 
-    def calculate_reward(self, response, payload):
-        reward = 0.0
+    def get_phase_info(self):
+        # Tính % hoàn thành cột để gửi cho State Manager
+        required = self.TARGET_MAP.get(self.current_target_table, [])
+        progress = len(self.collected_columns) / len(required) if required else 0.0
+        return {'phase': self.current_phase, 'progress': min(progress, 1.0)}
+
+    def calculate_reward(self, response, payload_fragment):
+        # act là từ khóa hành động vừa chọn (ví dụ: "SELECT", "email", ...)
+        act = payload_fragment.strip().upper()
+        
+        reward = -1.0 # Phạt nhẹ mỗi bước để khuyến khích hoàn thành sớm
         done = False
-        p_upper = payload.upper()
-        current_kw = self._extract_last_keyword(payload)
         
-        # --- 1. LUẬT TỬ HÌNH: CẤM SPAM TỪ KHÓA ---
-        if current_kw in self.structural_keywords:
-            if current_kw in self.used_keywords: return -10.0, True 
-            self.used_keywords.add(current_kw)
-
-        if current_kw in self.unique_data_columns:
-            if current_kw in self.used_keywords: return -10.0, True
-            self.used_keywords.add(current_kw)
-            
-        # Luật cấm spam NULL quá đà
-        if p_upper.count("NULL") > 6:
-            return -10.0, True
-
-        # --- 2. LOGIC DI CHUYỂN (State Machine) ---
-        if self.last_action_keyword is None:
-            if "A'))" in current_kw: reward += 2.0 
-            else: return -10.0, True 
+        # --- LOGIC MÁY TRẠNG THÁI (STATE MACHINE) ---
         
-        else:
-            prev = self.last_action_keyword
-            
-            # [Giai đoạn 1: Khung sườn]
-            if "A'))" in prev and "UNION" in current_kw: reward += 3.0
-            elif "UNION" in prev and "SELECT" in current_kw: reward += 3.0
-            
-            # [Giai đoạn 2: CHỌN MÓN ĂN - CÓ THỨ TỰ]
-            elif ("SELECT" in prev or "," in prev):
+        # 1. Giai đoạn START: Bắt buộc bắt đầu bằng a'))
+        if self.current_phase == self.PHASE_START:
+            if "A'))" in act:
+                reward += 10.0
+                self.current_phase = self.PHASE_UNION
+            elif act in ["UNION", "SELECT", "FROM"]:
+                reward -= 10.0 # Phạt nặng nếu nhảy cóc
+
+        # 2. Giai đoạn UNION: Cần từ khóa UNION
+        elif self.current_phase == self.PHASE_UNION:
+            if "UNION" in act:
+                reward += 15.0
+                self.current_phase = self.PHASE_SELECT
+            elif "SELECT" in act: 
+                reward -= 10.0
                 
-                # --- QUY ĐỊNH THỨ TỰ NGHIÊM NGẶT ---
-                if current_kw in self.unique_data_columns:
-                    # Cấm quay xe nếu đã có NULL
-                    if "NULL" in self.used_keywords: return -10.0, True
-                    
-                    # 1. BẮT BUỘC ID ĐẦU TIÊN
-                    if current_kw == "ID":
-                        # ID luôn được chào đón đầu tiên
-                        reward += 5.0
-                        
-                    # 2. EMAIL CHỈ ĐƯỢC CHỌN NẾU ĐÃ CÓ ID
-                    elif current_kw == "EMAIL":
-                        if "ID" in self.used_keywords: reward += 5.0
-                        else: return -10.0, True # Chưa có ID mà chọn EMAIL -> CHẾT
-                        
-                    # 3. PASSWORD CHỈ ĐƯỢC CHỌN NẾU ĐÃ CÓ EMAIL
-                    elif current_kw == "PASSWORD":
-                        if "EMAIL" in self.used_keywords: reward += 5.0
-                        else: return -10.0, True # Chưa có EMAIL mà chọn PASS -> CHẾT
-
-                elif "NULL" in current_kw:
-                    # NULL chỉ được chọn nếu đã lấy đủ 3 cột quan trọng (Hoặc chấp nhận mất điểm để lấp đầy)
-                    # Ở đây ta cho phép NULL lấp đầy, nhưng thưởng thấp
-                    reward += 1.0 
-
-            # [Giai đoạn 3: Dấu phẩy]
-            elif (prev in self.unique_data_columns or prev == "NULL") and current_kw == ",":
-                reward += 2.0
+        # 3. Giai đoạn SELECT: Cần từ khóa SELECT
+        elif self.current_phase == self.PHASE_SELECT:
+            if "SELECT" in act:
+                reward += 15.0
+                self.current_phase = self.PHASE_COLLECT
+            elif "FROM" in act:
+                reward -= 20.0
                 
-            # [CHẶN LỖI CÚ PHÁP]
-            elif prev == "," and current_kw == ",": return -10.0, True 
-            elif (prev in self.unique_data_columns or prev == "NULL") and (current_kw in self.unique_data_columns or current_kw == "NULL"):
-                return -10.0, True
-
-            # [Giai đoạn 4: VỀ ĐÍCH]
-            elif current_kw == "FROM":
-                extracted_cols = [c for c in self.unique_data_columns if c in self.used_keywords]
-                if len(extracted_cols) == 3:
-                    reward += 50.0 
-                elif "SELECT" in self.used_keywords:
-                    reward -= 5.0
+        # 4. Giai đoạn COLLECT: Thu thập cột
+        elif self.current_phase == self.PHASE_COLLECT:
+            target_cols = [x.upper() for x in self.TARGET_MAP.get(self.current_target_table, [])]
+            
+            # Nếu chọn đúng cột mục tiêu
+            if act in target_cols:
+                if act not in self.collected_columns:
+                    reward += 30.0 # Thưởng ĐẬM cho cột mới
+                    self.collected_columns.append(act)
                 else:
-                    return -10.0, True 
-
-            elif current_kw == "USERS":
-                if "FROM" in self.used_keywords: reward += 5.0
-                else: return -10.0, True
-
-            elif current_kw == "--":
-                if "USERS" in self.used_keywords: 
-                #     reward += 20.0 
-                #     done = True # <--- QUAN TRỌNG: CẮT ĐUÔI NGAY LẬP TỨC
-                # else: return -10.0, True
-            # Kiểm tra xem đã lấy đủ hàng nóng chưa
-                    extracted_cols = [c for c in self.unique_data_columns if c in self.used_keywords]
-                    
-                    if len(extracted_cols) == 3:
-                        # NẾU ĐÃ CÓ ĐỦ ID, EMAIL, PASSWORD MÀ CÒN CHỐT HẠ BẰNG "--"
-                        # => COI NHƯ LÀ CHIẾN THẮNG TUYỆT ĐỐI (SUCCESS)
-                        return 100.0, True 
-                    else:
-                        # Nếu chưa đủ hàng mà đòi chốt -> Phạt nhẹ hoặc thưởng ít
-                        reward += 20.0
-                        done = True
-                    
-                    # --------------------
-                else: return -10.0, True
-
-        # --- 3. WIN CHECK ---
-        if str(self.success_marker) in str(response.text):
-            return 100.0, True
+                    reward -= 5.0 # Phạt nhẹ nếu lặp lại cột đã lấy
             
-        if "SQLITE_ERROR" in str(response.text):
-            if "SELECTs to the left and right of UNION" in str(response.text):
-                reward -= 0.5 
+            # Nếu chọn cột rác (của bảng khác)
+            elif any(act in [x.upper() for x in v] for v in self.TARGET_MAP.values()):
+                reward -= 15.0 # Phạt vì chọn sai cột
+            
+            # Nếu dùng NULL (Tốt, để lấp đầy số lượng cột)
+            elif "NULL" in act:
+                reward += 2.0
+            
+            # Dấu phẩy (Cần thiết để ngăn cách)
+            elif "," in act:
+                reward += 1.0
+                
+            # Chuyển sang giai đoạn FROM
+            elif "FROM" in act:
+                # Chỉ cho phép sang FROM nếu đã lấy đc ít nhất 1 cột
+                if len(self.collected_columns) > 0:
+                    reward += 20.0
+                    self.current_phase = self.PHASE_FROM
+                else:
+                    reward -= 20.0 # Chưa lấy gì mà đòi FROM
+        
+        # 5. Giai đoạn FROM: Chọn bảng đúng
+        elif self.current_phase == self.PHASE_FROM:
+            # act ở đây ví dụ là " FROM Users"
+            # Cắt chữ FROM đi để lấy tên bảng
+            chosen_table = act.replace("FROM", "").strip()
+            
+            if chosen_table.upper() == self.current_target_table.upper():
+                reward += 100.0 # <--- ĐÃ SỬA: Thưởng 100 điểm để main.py đếm success chuẩn xác
+                self.current_phase = self.PHASE_END
+                done = True # HOÀN THÀNH NHIỆM VỤ
+            elif "FROM" in act: # Chọn sai bảng
+                reward -= 50.0 
+                done = True # Thất bại, kết thúc luôn
             else:
-                reward -= 1.0 
+                reward -= 5.0 # Chọn linh tinh ở bước cuối
 
-        self.last_action_keyword = current_kw
-        if len(payload) > 250: return -10.0, True
-            
+        # [QUAN TRỌNG] Dòng return này phải nằm ngoài cùng, KHÔNG được thụt vào trong if/elif
         return reward, done
-
-    def _extract_last_keyword(self, payload):
-        s = payload.upper().strip()
-        # Ưu tiên check các ký tự đặc biệt ở cuối trước
-        if s.endswith("--"): return "--"
-        if s.endswith("A'))"): return "A'))" # <--- SỬA LỖI Ở ĐÂY (Bỏ check len < 6)
-        
-        if s.endswith("USERS"): return "USERS"
-        if s.endswith("FROM"): return "FROM"
-        if s.endswith("NULL"): return "NULL"
-        if s.endswith(","): return ","
-        if s.endswith("PASSWORD"): return "PASSWORD"
-        if s.endswith("EMAIL"): return "EMAIL"
-        if s.endswith("ID"): return "ID"
-        if s.endswith("SELECT"): return "SELECT"
-        if s.endswith("UNION"): return "UNION"
-        
-        # Fallback cho trường hợp khởi đầu ngắn
-        if "A'))" in s and len(s) < 10: return "A'))"
-        
-        return "UNKNOWN"
